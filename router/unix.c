@@ -78,7 +78,7 @@ int diag_unix_open(void)
 
 	memset(&addr, 0, sizeof(addr));
 	addr.sun_family = AF_UNIX;
-	strncpy(addr.sun_path, "\0diag", sizeof(addr.sun_path)-1);
+	memcpy(addr.sun_path, "\0diag", 5);
 	ret = bind(fd, (struct sockaddr*)&addr, sizeof(addr));
 	if (ret < 0) {
 		fprintf(stderr, "failed to bind diag socket");

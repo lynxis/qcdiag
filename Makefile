@@ -30,6 +30,7 @@ SRCS := router/app_cmds.c \
 	router/peripheral.c \
 	router/router.c \
 	router/socket.c \
+	router/tcp.c \
 	router/uart.c \
 	router/unix.c \
 	router/usb.c \

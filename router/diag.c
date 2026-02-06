@@ -85,21 +85,77 @@ static void usage(void)
 	exit(1);
 }
 
+void inval_ipv6(const char *ipv6)
+{
+	fprintf(stderr, "Invalid ipv6 address given %s\n", ipv6);
+	exit(1);
+}
+
 int main(int argc, char **argv)
 {
-	char *host_address = NULL;
+	char *host_address = NULL, *tcp4_bind_addr = NULL, *tcp6_bind_addr = NULL;
 	int host_port = DEFAULT_SOCKET_PORT;
+	int tcp4_bind_port = DEFAULT_SOCKET_PORT, tcp6_bind_port = DEFAULT_SOCKET_PORT;
 	char *uartdev = NULL;
 	int baudrate = DEFAULT_BAUD_RATE;
-	char *token;
+	char *token, *token2, *tmp;
 	int ret;
 	int c;
 
 	for (;;) {
-		c = getopt(argc, argv, "hs:u:");
+		c = getopt(argc, argv, "hs:u:a:t:a:");
 		if (c < 0)
 			break;
 		switch (c) {
+		case 'a':
+			tmp = strdup(optarg);
+			/* format of [ip]:port or [ip] or ip */
+			token = strchr(tmp, '[');
+			token2 = strchr(tmp, ']');
+
+			/* only one of [] given, wrong order of [] or [ comes after ] */
+			if ((!!token ^ !!token2) || (token > token2)) {
+				inval_ipv6(optarg);
+				break;
+			} else if (token && token2) {
+				/* parsing [ip]:9001 and [ip] */
+
+				/* [ must be at the start */
+				if (token != tmp)
+					inval_ipv6(optarg);
+
+				/* example [ab:cd]:9001 */
+				token = strtok(tmp, "[");
+				/* token = ab:cd]:9001 */
+
+				tcp6_bind_addr = strtok(token, "]");
+
+				token = strtok(NULL, "");
+				/* token = :9001 */
+
+				/* no port given */
+				if (!token)
+					break;
+
+				/* Port must be direct after ] */
+				if (token[0] != ':')
+					inval_ipv6(optarg);
+
+				/* check for empty port */
+				if (!token[1])
+					inval_ipv6(optarg);
+
+				tcp6_bind_port = atoi(token + 1);
+			} else {
+				tcp6_bind_addr = tmp;
+			}
+			break;
+		case 't':
+			tcp4_bind_addr = strtok(strdup(optarg), ":");
+			token = strtok(NULL, "");
+			if (token)
+				tcp4_bind_port = atoi(token);
+			break;
 		case 's':
 			host_address = strtok(strdup(optarg), ":");
 			token = strtok(NULL, "");
@@ -127,6 +183,18 @@ int main(int argc, char **argv)
 		ret = diag_uart_open(uartdev, baudrate);
 		if (ret < 0)
 			errx(1, "failed to open uart\n");
+	}
+
+	if (tcp4_bind_addr) {
+		ret = diag_tcp4_open(tcp4_bind_addr, tcp4_bind_port);
+		if (ret < 0)
+			err(1, "failed to open tcp4 bind\n");
+	}
+
+	if (tcp6_bind_addr) {
+		ret = diag_tcp6_open(tcp6_bind_addr, tcp6_bind_port);
+		if (ret < 0)
+			err(1, "failed to open tcp6 bind\n");
 	}
 
 	diag_usb_open("/dev/ffs-diag");

@@ -116,6 +116,8 @@ void queue_push_flow(struct list_head *queue, const void *msg, size_t msglen,
 extern struct list_head diag_cmds;
 
 int diag_sock_connect(const char *hostname, unsigned short port);
+int diag_tcp4_open(const char *bind_addr, uint16_t bind_port);
+int diag_tcp6_open(const char *bind_addr, uint16_t bind_port);
 int diag_uart_open(const char *uartname, unsigned int baudrate);
 int diag_usb_open(const char *ffs_name);
 int diag_unix_open(void);

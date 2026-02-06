@@ -55,6 +55,8 @@ static int tcp_listen(int fd, void *data)
 		return 0;
 	}
 
+	printf("tcp: accepting connection on fd %d\n", fd);
+
 	ret = fcntl(client, F_SETFL, O_NONBLOCK);
 	if (ret < 0) {
 		fprintf(stderr, "tcp: failed to set O_NONBLOCK on fd %d", client);
@@ -75,13 +77,13 @@ int diag_tcp_bind(int fd, void *data, size_t data_size)
 
 	ret = bind(fd, addr, data_size);
 	if (ret < 0) {
-		fprintf(stderr, "failed to bind diag socket");
+		fprintf(stderr, "tcp: failed to bind diag socket %d\n", fd);
 		return -1;
 	}
 
 	ret = listen(fd, 2);
 	if (ret < 0) {
-		fprintf(stderr, "failed to listen on diag socket\n");
+		fprintf(stderr, "failed to listen on diag socket %d\n", fd);
 		return -1;
 	}
 
@@ -98,6 +100,8 @@ int diag_tcp6_open(const char *bind_addr, uint16_t bind_port)
 	};
 	int ret;
 	int fd;
+
+	printf("tcp6: binding to [%s]:%d\n", bind_addr, bind_port);
 
 	ret = inet_pton(AF_INET6, bind_addr, &addr.sin6_addr);
 	if (ret != 1) {
@@ -124,6 +128,7 @@ int diag_tcp4_open(const char *bind_addr, uint16_t bind_port)
 	int ret;
 	int fd;
 
+	printf("tcp4: binding to %s:%d\n", bind_addr, bind_port);
 	ret = inet_pton(AF_INET, bind_addr, &addr.sin_addr);
 	if (ret != 1) {
 		fprintf(stderr, "failed to parse bind addr %s - %s\n", bind_addr, strerror(errno));

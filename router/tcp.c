@@ -105,13 +105,13 @@ int diag_tcp6_open(const char *bind_addr, uint16_t bind_port)
 
 	ret = inet_pton(AF_INET6, bind_addr, &addr.sin6_addr);
 	if (ret != 1) {
-		fprintf(stderr, "failed to parse bind addr %s - %s\n", bind_addr, strerror(errno));
+		fprintf(stderr, "tcp6: failed to parse bind addr %s - %s\n", bind_addr, strerror(errno));
 		return -1;
 	}
 
-	fd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
+	fd = socket(AF_INET6, SOCK_STREAM | SOCK_CLOEXEC, 0);
 	if (fd < 0) {
-		fprintf(stderr, "failed to create tcp socket");
+		fprintf(stderr, "tcp6: failed to create tcp socket\n");
 		return -1;
 	}
 
@@ -131,13 +131,13 @@ int diag_tcp4_open(const char *bind_addr, uint16_t bind_port)
 	printf("tcp4: binding to %s:%d\n", bind_addr, bind_port);
 	ret = inet_pton(AF_INET, bind_addr, &addr.sin_addr);
 	if (ret != 1) {
-		fprintf(stderr, "failed to parse bind addr %s - %s\n", bind_addr, strerror(errno));
+		fprintf(stderr, "tcp4: failed to parse bind addr %s - %s\n", bind_addr, strerror(errno));
 		return -1;
 	}
 
 	fd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
 	if (fd < 0) {
-		fprintf(stderr, "failed to create tcp socket");
+		fprintf(stderr, "tcp4: failed to create tcp socket\n");
 		return -1;
 	}
 

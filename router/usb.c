@@ -290,14 +290,14 @@ static int diag_ffs_recv(struct mbuf *mbuf, void *data)
 	recv_buf.tail = 0;
 	recv_buf.head = mbuf->offset;
 
-	// print_hex_dump("[USB]", mbuf->data, mbuf->offset);
+	print_hex_dump("[USB]", mbuf->data, mbuf->offset);
 
 	for (;;) {
 		msg = hdlc_decode_one(&recv_decoder, &recv_buf, &msglen);
 		if (!msg)
 			break;
 
-		// print_hex_dump("  [MSG]", msg, MIN(msglen, 256));
+		print_hex_dump("  [MSG]", msg, MIN(msglen, 256));
 
 		diag_client_handle_command(ffs->dm, msg, msglen);
 	}
@@ -322,10 +322,12 @@ static int ep0_recv(int fd, void *data)
 
 	switch (event.type) {
 	case FUNCTIONFS_ENABLE:
+		printf("usb: enabled function\n");
 		watch_add_readq(ffs->bulk_out, &ffs->outq, diag_ffs_recv, ffs);
 		dm_enable(ffs->dm);
 		break;
 	case FUNCTIONFS_DISABLE:
+		printf("usb: disabled function\n");
 		dm_disable(ffs->dm);
 		break;
 	}

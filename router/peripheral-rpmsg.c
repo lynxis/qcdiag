@@ -295,6 +295,7 @@ static void peripheral_open(void *data)
 	int ret;
 	int fd;
 
+	DIAG_DEBUG("Open rpmsg peripheral %s\n", rproc);
 	fd = devnode_open(rproc, "DIAG");
 	if (fd < 0)
 		fd = devnode_open(rproc, "APPS_RIVA_DATA");
@@ -331,6 +332,7 @@ static void peripheral_open(void *data)
 		watch_add_readfd(peripheral->cmd_fd, diag_cmd_recv, peripheral, NULL);
 		watch_add_writeq(peripheral->cmd_fd, &peripheral->cmdq);
 	}
+	DIAG_DEBUG("Succesfully initialized rpmsg peripheral %s\n", rproc);
 
 	/* Send current message mask to the newly found peripheral */
 	diag_cntl_send_masks(peripheral);

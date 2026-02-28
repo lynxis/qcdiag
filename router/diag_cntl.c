@@ -239,6 +239,7 @@ static int diag_cntl_register(struct peripheral *peripheral,
 	unsigned int last;
 	int i;
 
+	DIAG_PDEBUG(peripheral, "Registering cntl\n");
 	for (i = 0; i < pkt->count_entries; i++) {
 		cmd = pkt->cmd;
 		subsys = pkt->subsys;
@@ -249,8 +250,7 @@ static int diag_cntl_register(struct peripheral *peripheral,
 		first = cmd << 24 | subsys << 16 | pkt->ranges[i].first;
 		last = cmd << 24 | subsys << 16 | pkt->ranges[i].last;
 
-		// printf("[%s] register 0x%x - 0x%x\n",
-		//	  peripheral->name, first, last);
+		DIAG_PDEBUG(peripheral, "register 0x%08x - 0x%08x\n", first, last);
 
 		dc = malloc(sizeof(*dc));
 		if (!dc) {
@@ -287,6 +287,7 @@ static int diag_cntl_feature_mask(struct peripheral *peripheral,
 	local_mask |= DIAG_FEATURE_DIAG_ID_FEATURE_MASK;
 
 	printf("[%s] mask:", peripheral->name);
+	DIAG_PDEBUG(peripheral, "mask: ");
 
 	if (mask & DIAG_FEATURE_FEATURE_MASK_SUPPORT)
 		printf(" FEATURE_MASK_SUPPORT");
@@ -314,7 +315,7 @@ static int diag_cntl_feature_mask(struct peripheral *peripheral,
 		printf(" DIAG-ID-FEATURE-MASK");
 	}
 
-	printf(" (0x%x)\n", mask);
+	printf(" (0x%08x)\n", mask);
 
 	peripheral->features = mask & local_mask;
 
@@ -335,7 +336,7 @@ void diag_cntl_send_log_mask(struct peripheral *peripheral, uint32_t equip_id)
 	if (peripheral == NULL)
 		return;
 	if (peripheral->cntl_fd == -1) {
-		warn("Peripheral %s has no control channel. Skipping!\n", peripheral->name);
+		DIAG_PWARN(peripheral, "has no control channel. Skipping!\n");
 		return;
 	}
 
@@ -376,7 +377,7 @@ void diag_cntl_send_msg_mask(struct peripheral *peripheral, struct diag_ssid_ran
 	if (peripheral == NULL)
 		return;
 	if (peripheral->cntl_fd == -1) {
-		warn("Peripheral %s has no control channel. Skipping!\n", peripheral->name);
+		DIAG_PWARN(peripheral, "has no control channel. Skipping!\n");
 		return;
 	}
 
@@ -435,7 +436,7 @@ void diag_cntl_send_event_mask(struct peripheral *peripheral)
 	if (peripheral == NULL)
 		return;
 	if (peripheral->cntl_fd == -1) {
-		warn("Peripheral %s has no control channel. Skipping!\n", peripheral->name);
+		DIAG_PWARN(peripheral, "has no control channel. Skipping!\n");
 		return;
 	}
 
@@ -475,6 +476,7 @@ static int diag_cntl_deregister(struct peripheral *peripheral,
 	struct list_head *item;
 	struct list_head *next;
 
+	DIAG_PDEBUG(peripheral, "CTNL deregister peripheral\n");
 	for (i = 0; i < pkt->count_entries; i++) {
 		cmd = pkt->cmd;
 		subsys = pkt->subsys;
@@ -502,7 +504,7 @@ static void diag_cntl_send_feature_mask(struct peripheral *peripheral, uint32_t 
 	size_t len = sizeof(*pkt) + 2;
 
 	if (peripheral->cntl_fd == -1) {
-		warn("Peripheral %s has no control channel. Skipping!\n", peripheral->name);
+		DIAG_PWARN(peripheral, "has no control channel. Skipping!\n");
 		return;
 	}
 
@@ -719,8 +721,8 @@ int diag_cntl_recv(struct peripheral *peripheral, const void *buf, size_t n)
 			diag_cntl_deregister(peripheral, hdr, n);
 			break;
 		default:
-			warnx("[%s] unsupported control packet: %d",
-			      peripheral->name, hdr->cmd);
+			DIAG_PWARN(peripheral, "unsupported control packet: %d",
+				   hdr->cmd);
 			print_hex_dump("CNTL", buf, n);
 			break;
 		}
@@ -736,6 +738,7 @@ void diag_cntl_close(struct peripheral *peripheral)
 	struct list_head *item;
 	struct list_head *next;
 	struct diag_cmd *dc;
+	DIAG_PDEBUG(peripheral, "Closing peripheral\n");
 
 	list_for_each_safe(item, next, &diag_cmds) {
 		dc = container_of(item, struct diag_cmd, node);

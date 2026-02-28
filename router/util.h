@@ -48,4 +48,22 @@ void print_hex_dump(const char *prefix, const void *buf, size_t len);
 #define __packed __attribute__((packed))
 
 #define BITS_TO_BYTES(n) (((n) + 7) / 8)
+
+#ifdef WITH_DEBUG_PRINT
+#define DIAG_DEBUG(fmt, args...) printf("%s:%d" fmt, __FILE__, __LINE__, ## args)
+#define DIAG_PDEBUG(perif, fmt, args...) printf("%s: %s:%d" fmt, (perif)->name, __FILE__, __LINE__, ## args)
+#else
+#define DIAG_DEBUG(fmt, args...)
+#define DIAG_PDEBUG(perif, fmt, args...)
+#endif /* WITH_DEBUG_PRINT */
+
+#define DIAG_INFO(fmt, args...) printf("%s:%d" fmt, __FILE__, __LINE__, ## args)
+#define DIAG_PINFO(perif, fmt, args...) printf("%s: %s:%d" fmt, (perif)->name, __FILE__, __LINE__, ## args)
+
+#define DIAG_WARN(fmt, args...) warn("%s:%d" fmt, __FILE__, __LINE__, ## args)
+#define DIAG_ERR(fmt, args...) warn("%s:%d" fmt, __FILE__, __LINE__, ## args)
+
+#define DIAG_PWARN(perif, fmt, args...) warn("%s: %s:%d" fmt, (perif)->name, __FILE__, __LINE__, ## args)
+#define DIAG_PERR(perif, fmt, args...) warn("%s: %s:%d" fmt, (perif)->name, __FILE__, __LINE__, ## args)
+
 #endif

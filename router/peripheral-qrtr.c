@@ -77,13 +77,13 @@ static int qrtr_cntl_recv(int fd, void *data)
 	if (n < 0) {
 		ret = -errno;
 		if (ret != -ENETRESET)
-			fprintf(stderr, "[DIAG-QRTR] recvfrom failed: %d\n", ret);
+			DIAG_PERR(perif, "[DIAG-QRTR] recvfrom failed: %d\n", ret);
 		return ret;
 	}
 
 	ret = qrtr_decode(&pkt, buf, n, &sq);
 	if (ret < 0) {
-		fprintf(stderr, "[PD-MAPPER] unable to decode qrtr packet\n");
+		DIAG_PERR(perif, "[PD-MAPPER] unable to decode qrtr packet\n");
 		return ret;
 	}
 
@@ -103,7 +103,7 @@ static int qrtr_cntl_recv(int fd, void *data)
 		perif->cntl_open = false;
 		break;
 	default:
-		fprintf(stderr, "Unhandled DIAG CNTL message from %d:%d (%d)\n",
+		DIAG_PERR(perif, "Unhandled DIAG CNTL message from %d:%d (%d)\n",
 			pkt.node, pkt.port, pkt.type);
 		break;
 	}
@@ -135,13 +135,13 @@ static int qrtr_cmd_recv(int fd, void *data)
 	if (n < 0) {
 		ret = -errno;
 		if (ret != -ENETRESET)
-			fprintf(stderr, "[DIAG-QRTR] recvfrom failed: %d\n", ret);
+			DIAG_PERR(perif, "[DIAG-QRTR] recvfrom failed: %d\n", ret);
 		return ret;
 	}
 
 	ret = qrtr_decode(&pkt, buf->buf, n, &sq);
 	if (ret < 0) {
-		fprintf(stderr, "[PD-MAPPER] unable to decode qrtr packet\n");
+		DIAG_PERR(perif, "[PD-MAPPER] unable to decode qrtr packet\n");
 		return ret;
 	}
 
@@ -151,17 +151,17 @@ static int qrtr_cmd_recv(int fd, void *data)
 	case QRTR_TYPE_DATA:
 		frame = pkt.data;
 		if (frame->start != 0x7e || frame->version != 1) {
-			fprintf(stderr, "invalid non-HDLC frame\n");
+			DIAG_PERR(perif, "invalid non-HDLC frame\n");
 			break;
 		}
 
 		if (sizeof(*frame) + frame->length + 1 > pkt.data_len) {
-			fprintf(stderr, "truncated non-HDLC frame\n");
+			DIAG_PERR(perif, "truncated non-HDLC frame\n");
 			break;
 		}
 
 		if (frame->payload[frame->length] != 0x7e) {
-			fprintf(stderr, "non-HDLC frame is not truncated\n");
+			DIAG_PERR(perif, "non-HDLC frame is not truncated\n");
 			break;
 		}
 
@@ -171,21 +171,23 @@ static int qrtr_cmd_recv(int fd, void *data)
 		if (pkt.node == 0 && pkt.port == 0)
 			break;
 
-		printf("Connecting CMD socket to %d:%d\n", pkt.node, pkt.port);
+		DIAG_PINFO(perif, "Connecting CMD socket to %d:%d\n", pkt.node, pkt.port);
 		cmdsq.sq_family = AF_QIPCRTR;
 		cmdsq.sq_node = pkt.node;
 		cmdsq.sq_port = pkt.port;
 
 		ret = connect(perif->cmd_fd, (struct sockaddr *)&cmdsq, sizeof(cmdsq));
-		if (ret < 0)
-			err(1, "failed to connect to %d:%d", cmdsq.sq_node, cmdsq.sq_port);
+		if (ret < 0) {
+			DIAG_PERR(perif, "failed to connect to %d:%d", cmdsq.sq_node, cmdsq.sq_port);
+			exit(1);
+		}
 		watch_add_writeq(perif->cmd_fd, &perif->cmdq);
 		break;
 	case QRTR_TYPE_DEL_SERVER:
 		watch_remove_writeq(perif->cmd_fd);
 		break;
 	default:
-		fprintf(stderr, "Unhandled DIAG CMD message from %d:%d (%d)\n",
+		DIAG_PERR(perif, "Unhandled DIAG CMD message from %d:%d (%d)\n",
 			pkt.node, pkt.port, pkt.type);
 		break;
 	}
@@ -209,13 +211,13 @@ static int qrtr_data_recv(int fd, void *data)
 	if (n < 0) {
 		ret = -errno;
 		if (ret != -ENETRESET)
-			fprintf(stderr, "[DIAG-QRTR] recvfrom failed: %d\n", ret);
+			DIAG_PERR(perif, "[DIAG-QRTR] recvfrom failed: %d\n", ret);
 		return ret;
 	}
 
 	ret = qrtr_decode(&pkt, buf, n, &sq);
 	if (ret < 0) {
-		fprintf(stderr, "[PD-MAPPER] unable to decode qrtr packet\n");
+		DIAG_PERR(perif, "[PD-MAPPER] unable to decode qrtr packet\n");
 		return ret;
 	}
 
@@ -230,17 +232,17 @@ static int qrtr_data_recv(int fd, void *data)
 		}
 		frame = pkt.data;
 		if (frame->start != 0x7e || frame->version != 1) {
-			fprintf(stderr, "invalid non-HDLC frame\n");
+			DIAG_PERR(perif, "invalid non-HDLC frame\n");
 			break;
 		}
 
 		if (sizeof(*frame) + frame->length + 1 > pkt.data_len) {
-			fprintf(stderr, "truncated non-HDLC frame\n");
+			DIAG_PERR(perif, "truncated non-HDLC frame\n");
 			break;
 		}
 
 		if (frame->payload[frame->length] != 0x7e) {
-			fprintf(stderr, "non-HDLC frame is not truncated\n");
+			DIAG_PERR(perif, "non-HDLC frame is not truncated\n");
 			break;
 		}
 		dm_broadcast(frame->payload, frame->length, perif->flow);
@@ -250,7 +252,7 @@ static int qrtr_data_recv(int fd, void *data)
 		perif->data_open = false;
 		break;
 	default:
-		fprintf(stderr, "Unhandled DIAG DATA message from %d:%d (%d)\n",
+		DIAG_PERR(perif, "Unhandled DIAG DATA message from %d:%d (%d)\n",
 			pkt.node, pkt.port, pkt.type);
 		break;
 	}
@@ -292,20 +294,28 @@ static int qrtr_perif_init_subsystem(const char *name, int instance_base)
 	list_init(&perif->dataq);
 
 	perif->cntl_fd = qrtr_open(0);
-	if (perif->cntl_fd < 0)
-		err(1, "failed to create control socket");
+	if (perif->cntl_fd < 0) {
+		DIAG_PERR(perif, "failed to create control socket");
+		exit(1);
+	}
 
 	perif->data_fd = qrtr_open(0);
-	if (perif->data_fd < 0)
-		err(1, "failed to create data socket");
+	if (perif->data_fd < 0) {
+		DIAG_PERR(perif, "failed to create data socket");
+		exit(1);
+	}
 
 	perif->cmd_fd = qrtr_open(0);
-	if (perif->cmd_fd < 0)
-		err(1, "failed to create command socket");
+	if (perif->cmd_fd < 0) {
+		DIAG_PERR(perif, "failed to create command socket");
+		exit(1);
+	}
 
 	perif->dci_cmd_fd = qrtr_open(0);
-	if (perif->dci_cmd_fd < 0)
-		err(1, "failed to create dci command socket");
+	if (perif->dci_cmd_fd < 0) {
+		DIAG_PERR(perif, "failed to create dci command socket");
+		exit(1);
+	}
 
 	/*
 	 * DIAG does not use the normal packing of "instance << 8 | version" in

@@ -18,6 +18,11 @@ CFLAGS += -DHAS_LIBQRTR=1
 LDFLAGS += -lqrtr
 endif
 
+WITH_DEBUG_PRINT ?= 1
+ifeq ($(WITH_DEBUG_PRINT),1)
+CFLAGS += -DWITH_DEBUG_PRINT
+endif
+
 SRCS := router/app_cmds.c \
 	router/circ_buf.c \
 	router/common_cmds.c \

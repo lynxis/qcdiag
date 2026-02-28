@@ -43,6 +43,7 @@
 #include "peripheral.h"
 #include "util.h"
 
+#define DIAG_CTRL_MSG_REG               1
 #define DIAG_CTRL_MSG_DTR               2
 #define DIAG_CTRL_MSG_DIAGMODE          3
 #define DIAG_CTRL_MSG_DIAGDATA          4
@@ -64,6 +65,7 @@
 #define DIAG_CTRL_MSG_SSID_RANGE_REPORT         24
 #define DIAG_CTRL_MSG_BUILD_MASK_REPORT         25
 #define DIAG_CTRL_MSG_DEREG             27
+/* TODO: 28 is unknown, but the modem transmit it on register */
 #define DIAG_CTRL_MSG_DCI_HANDSHAKE_PKT         29
 #define DIAG_CTRL_MSG_PD_STATUS                 30
 #define DIAG_CTRL_MSG_TIME_SYNC_PKT             31

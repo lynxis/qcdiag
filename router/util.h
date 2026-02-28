@@ -31,6 +31,8 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
 
+#include <stdio.h>
+
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))

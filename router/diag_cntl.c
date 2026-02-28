@@ -281,7 +281,7 @@ static int diag_cntl_feature_mask(struct peripheral *peripheral,
 	int ret;
 	char mask_str[1024];
 	char *cur = &mask_str[0];
-	size_t remain = ARRAY_SIZE(mask_str);
+	size_t remain = ARRAY_SIZE(mask_str) - 1;
 	*cur = '0';
 
 	local_mask |= DIAG_FEATURE_FEATURE_MASK_SUPPORT;
@@ -298,7 +298,7 @@ static int diag_cntl_feature_mask(struct peripheral *peripheral,
 			if (remain) { \
 				ret = snprintf(cur, remain, fmt, ## args); \
 				if (ret > 0 && ret < remain) { \
-					remain += ret; \
+					remain -= ret; \
 					cur += ret; \
 				} else if (ret > 0 && ret >= remain) \
 					remain = 0; \
@@ -331,7 +331,7 @@ static int diag_cntl_feature_mask(struct peripheral *peripheral,
 		printf(" DIAG-ID-FEATURE-MASK");
 	}
 
-	APPEND(" (0x%08x)\n", mask);
+	APPEND(" (0x%08x)", mask);
 	#undef APPEND
 
 	DIAG_PDEBUG(peripheral, "mask: %s", mask_str);

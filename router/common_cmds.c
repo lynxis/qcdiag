@@ -218,6 +218,11 @@ static int handle_extended_message_configuration(struct diag_client *client,
 		uint8_t operation;
 	}__packed *request_header = buf;
 
+	if (sizeof(*request_header) > len)
+		return -EMSGSIZE;
+
+	DIAG_DEBUG("Extended Message Configuration Request: 0x%02x\n", request_header->operation);
+
 	switch (request_header->operation) {
 	case DIAG_CMD_OP_GET_SSID_RANGE: {
 		struct {
@@ -232,8 +237,10 @@ static int handle_extended_message_configuration(struct diag_client *client,
 		struct diag_ssid_range_t *ranges = NULL;
 		uint32_t ranges_size = 0;
 
-		if (sizeof(*request_header) != len)
+		if (sizeof(*request_header) != len) {
+			DIAG_INFO("Extended Message Configuration Request: len doesn't match. len: %d != %d sizeof(request_header)\n", len, sizeof(*request_header));
 			return -EMSGSIZE;
+		}
 
 		diag_cmd_get_ssid_range(&count, &ranges);
 		ranges_size = count * sizeof(*ranges);

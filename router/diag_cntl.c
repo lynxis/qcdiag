@@ -275,6 +275,11 @@ static int diag_cntl_feature_mask(struct peripheral *peripheral,
 	struct diag_cntl_cmd_feature *pkt = to_cmd_feature(hdr);
 	uint32_t local_mask = 0;
 	uint32_t mask = pkt->mask;
+	int ret;
+	char mask_str[1024];
+	char *cur = &mask_str[0];
+	size_t remain = ARRAY_SIZE(mask_str);
+	*cur = '0';
 
 	local_mask |= DIAG_FEATURE_FEATURE_MASK_SUPPORT;
 	local_mask |= DIAG_FEATURE_DIAG_MASTER_SETS_COMMON_MASK;
@@ -286,11 +291,19 @@ static int diag_cntl_feature_mask(struct peripheral *peripheral,
 	local_mask |= DIAG_FEATURE_DIAG_ID;
 	local_mask |= DIAG_FEATURE_DIAG_ID_FEATURE_MASK;
 
-	printf("[%s] mask:", peripheral->name);
-	DIAG_PDEBUG(peripheral, "mask: ");
+	#define APPEND(fmt, args...) do { \
+			if (remain) { \
+				ret = snprintf(cur, remain, fmt, ## args); \
+				if (ret > 0 && ret < remain) { \
+					remain += ret; \
+					cur += ret; \
+				} else if (ret > 0 && ret >= remain) \
+					remain = 0; \
+			} \
+		} while(0)
 
 	if (mask & DIAG_FEATURE_FEATURE_MASK_SUPPORT)
-		printf(" FEATURE_MASK_SUPPORT");
+		APPEND(" FEATURE_MASK_SUPPORT");
 	if (mask & DIAG_FEATURE_DIAG_MASTER_SETS_COMMON_MASK)
 		printf(" DIAG_MASTER_SETS_COMMON_MASK");
 	if (mask & DIAG_FEATURE_LOG_ON_DEMAND_APPS)
@@ -315,7 +328,10 @@ static int diag_cntl_feature_mask(struct peripheral *peripheral,
 		printf(" DIAG-ID-FEATURE-MASK");
 	}
 
-	printf(" (0x%08x)\n", mask);
+	APPEND(" (0x%08x)\n", mask);
+	#undef APPEND
+
+	DIAG_PDEBUG(peripheral, "mask: %s", mask_str);
 
 	peripheral->features = mask & local_mask;
 

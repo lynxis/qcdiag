@@ -60,10 +60,10 @@ void print_hex_dump(const char *prefix, const void *buf, size_t len);
 #define DIAG_INFO(fmt, args...) printf("%s:%d " fmt, __FILE__, __LINE__, ## args)
 #define DIAG_PINFO(perif, fmt, args...) printf("%s: %s:%d " fmt, (perif)->name, __FILE__, __LINE__, ## args)
 
-#define DIAG_WARN(fmt, args...) warn("%s:%d " fmt, __FILE__, __LINE__, ## args)
-#define DIAG_ERR(fmt, args...) warn("%s:%d " fmt, __FILE__, __LINE__, ## args)
+#define DIAG_WARN(fmt, args...) warnx("%s:%d " fmt, __FILE__, __LINE__, ## args)
+#define DIAG_ERR(fmt, args...) warnx("%s:%d " fmt, __FILE__, __LINE__, ## args)
 
-#define DIAG_PWARN(perif, fmt, args...) warn("%s: %s:%d " fmt, (perif)->name, __FILE__, __LINE__, ## args)
-#define DIAG_PERR(perif, fmt, args...) warn("%s: %s:%d " fmt, (perif)->name, __FILE__, __LINE__, ## args)
+#define DIAG_PWARN(perif, fmt, args...) warnx("%s: %s:%d " fmt, (perif)->name, __FILE__, __LINE__, ## args)
+#define DIAG_PERR(perif, fmt, args...) warnx("%s: %s:%d " fmt, (perif)->name, __FILE__, __LINE__, ## args)
 
 #endif

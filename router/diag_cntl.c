@@ -334,7 +334,7 @@ static int diag_cntl_feature_mask(struct peripheral *peripheral,
 	APPEND(" (0x%08x)", mask);
 	#undef APPEND
 
-	DIAG_PDEBUG(peripheral, "mask: %s", mask_str);
+	DIAG_PDEBUG(peripheral, "mask: %s\n", mask_str);
 
 	peripheral->features = mask & local_mask;
 

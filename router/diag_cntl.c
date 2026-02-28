@@ -252,7 +252,8 @@ static int diag_cntl_register(struct peripheral *peripheral,
 		first = cmd << 24 | subsys << 16 | pkt->ranges[i].first;
 		last = cmd << 24 | subsys << 16 | pkt->ranges[i].last;
 
-		DIAG_PDEBUG(peripheral, "register 0x%08x - 0x%08x\n", first, last);
+		DIAG_PDEBUG(peripheral, "register cmd 0x%02x / sub 0x%02x: 0x%04x - 0x%04x\n",
+					 cmd, subsys, pkt->ranges[i].first, pkt->ranges[i].last);
 
 		dc = malloc(sizeof(*dc));
 		if (!dc) {

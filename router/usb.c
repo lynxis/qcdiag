@@ -310,25 +310,34 @@ static int diag_ffs_recv(struct mbuf *mbuf, void *data)
 
 static int ep0_recv(int fd, void *data)
 {
-	struct usb_functionfs_event event;
+	struct usb_functionfs_event event = {};
 	struct usb_handle *ffs = data;
 	ssize_t n;
 
 	n = read(fd, &event, sizeof(event));
 	if (n <= 0) {
-		warn("failed to read ffs ep0");
+		DIAG_WARN("failed to read ffs ep0");
 		return 0;
 	}
 
 	switch (event.type) {
 	case FUNCTIONFS_ENABLE:
-		printf("usb: enabled function\n");
+		DIAG_INFO("usb: enabled function\n");
 		watch_add_readq(ffs->bulk_out, &ffs->outq, diag_ffs_recv, ffs);
 		dm_enable(ffs->dm);
 		break;
 	case FUNCTIONFS_DISABLE:
-		printf("usb: disabled function\n");
+		DIAG_INFO("usb: disabled function\n");
+		watch_remove_fd(ffs->bulk_out);
 		dm_disable(ffs->dm);
+		break;
+	case FUNCTIONFS_BIND:
+	case FUNCTIONFS_UNBIND:
+	case FUNCTIONFS_SETUP:
+	case FUNCTIONFS_SUSPEND:
+	case FUNCTIONFS_RESUME:
+	default:
+		DIAG_INFO("usb: unhandled functionfs event 0x%02x\n", event.type);
 		break;
 	}
 
